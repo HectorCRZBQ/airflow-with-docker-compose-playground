@@ -2,6 +2,8 @@
 
 ## Estructura de directorios
 
+Ejecutamos el comando **ls** para revisar la estructura que debe coincidir con la siguiente
+
 ```
 .
 ├── README.md
@@ -18,6 +20,31 @@
 - Docker Compose
 - Git
 
+## Revisamos las versiones ejecutando los comandos
+
+**Docker**
+```
+docker --version
+```
+
+![alt text](images/image1.png)
+
+**Docker Compose**
+```
+docker compose --version
+```
+
+![alt text](images/image2.png)
+
+**Git**
+```
+git --version
+```
+
+![alt text](images/image3.png)
+
+
+
 ## Puesta en marcha
 
 1. Iniciar los servicios:
@@ -25,18 +52,46 @@
 docker-compose up -d
 ```
 
+![alt text](images/image4.png)
+
+Revisamos que exista la imagen ejecutando el siguiente comando:
+```bash
+docker ps -a
+```
+![alt text](images/image5.png)
+
+Revisamos que exista el contenedor ejecutando el siguiente comando:
+```bash
+docker images
+```
+![alt text](images/image6.png)
+
+
 2. Ver los logs (incluye la contraseña de admin):
 ```bash
 docker-compose logs airflow
 ```
 
-![How To](assets/snapshot_pwd_in_docker-compose_output.png)
+![alt text](images/image7.png)
+
+Se nos muestra que la contraseña para el usuario **admin** es **6mhF747TCazWph76**
+
+*Si no se muestra la contraseña del usuario **admin** se ejecuta el siguiente comando para filtrar la busqueda:*
+```bash
+ docker-compose logs airflow | grep admin
+```
+![alt text](images/image8.png)
 
 
 3. Acceder a la interfaz web:
-- URL: http://localhost:8080
+- URL: http://localhost:8001
+
+![alt text](images/image9.png)
+
 - Usuario: admin
 - Contraseña: buscar en los logs la línea que contiene "admin:password"
+
+![alt text](images/image10.png)
 
 ## Verificar resultados
 
@@ -45,17 +100,36 @@ docker-compose logs airflow
 cat outputs/report.txt
 ```
 
+Al ejecutarlo me ha aparecido el siguiente error
+![alt text](images/image11.png)
+
+*Para corregirlo he ejecutado los siguientes comandos:*
+```bash
+chmod 775 outputs
+ls -ld outputs
+```
+*Donde se dan permisos de lectura, escritura y ejeccución a outputs, y luego revisamos que los permisos se hayan actualizado.*
+
+Lo volvemos a ejecutar para mostrar **report.txt**
+```bash
+cat outputs/report.txt
+```
+![alt text](images/image12.png)
+
+
 2. O acceder directamente al contenedor:
 ```bash
 docker-compose exec airflow bash
 cat /tmp/report.txt
 ```
+![alt text](images/image13.png)
 
 ## Detener los servicios
 
 ```bash
 docker-compose down
 ```
+![alt text](images/image14.png)
 
 ## Comandos útiles
 
@@ -63,32 +137,69 @@ docker-compose down
 ```bash
 docker-compose logs -f
 ```
+![alt text](images/image15.png)
 
 - Reiniciar servicios:
 ```bash
 docker-compose restart
 ```
+![alt text](images/image16.png)
+
 
 - Limpiar todo (incluyendo volúmenes):
 ```bash
 docker-compose down -v
 ```
 
-## Resolución de problemas comunes
+# Nuevo DAG
 
-1. Si no aparece la contraseña:
-   - Esperar un poco :)
-   - Filtrar la salida con `docker-compose logs airflow | grep admin`
+Creamos un nuevo DAG que descarge datos de dos fuentes distintas, hace un merge de ambas y por ultimo genera un informe.
 
-2. Si el puerto 8080 está ocupado:
-   - Modificar el puerto en docker-compose.yaml: "8081:8080"
+El nuevo dataset que hemos añadido es: https://github.com/datasets/world-cities/blob/main/data/world-cities.csv
 
-3. Si no aparece el DAG en la interfaz:
-   - Verificar la sintaxis del archivo Python
-   - Revisar los logs: `docker-compose logs airflow`
+En formato RAW: https://raw.githubusercontent.com/datasets/world-cities/refs/heads/main/data/world-cities.csv
 
-4. Si no se pueden escribir los outputs:
-   - Verificar permisos en el directorio outputs
-   - Comprobar la configuración de volúmenes en docker-compose.yaml
-   - Regenerar el fichero de usuario: `echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env` en el raíz del proyecto.
+Volvemos a iniciar los servicios:
+```bash
+docker-compose up -d
+```
+![alt text](images/image17.png)
 
+Vemos los logs para conocer la contraseña del usuario **admin**
+```bash
+docker-compose logs airflow
+```
+![alt text](images/image18.png)
+
+Se nos muestra que la contraseña para el usuario **admin** es **fkqYvKzbyvFCAcyx**
+
+Accedemos a la interfaz web (http://localhost:8001) e iniciamos sesión con los credenciales obtenidos anteriormente
+
+![alt text](images/image19.png)
+
+
+Mostramos los outputs:
+```bash
+cat outputs/report.txt
+```
+![alt text](images/image20.png)
+
+```bash
+cat outputs/merged_report.txt
+```
+![alt text](images/image21.png)
+
+Otra forma es acceder directamente al contenedor:
+```bash
+docker-compose exec airflow bash
+cat /tmp/report.txt
+```
+![alt text](images/image22.png)
+
+
+```bash
+docker-compose exec airflow bash
+cat /tmp/merged_report.txt
+```
+
+![alt text](images/image23.png)

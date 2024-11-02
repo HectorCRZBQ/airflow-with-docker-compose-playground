@@ -1,1 +1,9 @@
 __pycache__
+
+# Ignorar archivos .txt y .csv de manera global
+*.txt
+*.csv
+
+# Permitir archivos .txt y .csv en la carpeta outputs
+!/outputs/
+!/outputs/*.txt
